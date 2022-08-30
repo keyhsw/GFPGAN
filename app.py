@@ -52,20 +52,13 @@ def inference(img):
     if h < 400:
         img = cv2.resize(img, (w * 2, h * 2), interpolation=cv2.INTER_LANCZOS4)
 
-    if len(img.shape) == 3 and img.shape[2] == 4:
-        img_mode = 'RGBA'
-    else:
-        img_mode = None
-
     try:
         _, _, output = face_enhancer.enhance(img, has_aligned=False, only_center_face=False, paste_back=True)
     except RuntimeError as error:
         print('Error', error)
         print('If you encounter CUDA out of memory, try to set --tile with a smaller number.')
     else:
-        extension = extension[1:]
-        if img_mode == 'RGBA':  # RGBA images should be saved in png format
-            extension = 'png'
+        extension = 'png'
 
     return Image.fromarray(output)
 
