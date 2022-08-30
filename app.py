@@ -24,7 +24,7 @@ torch.hub.download_url_to_file(
     'Blake_Lively.jpg')
 torch.hub.download_url_to_file(
     'https://user-images.githubusercontent.com/17445847/187401133-8a3bf269-5b4d-4432-b2f0-6d26ee1d3307.png',
-    '10045.jpg')
+    '10045.png')
 
 # background enhancer with RealESRGAN
 model = SRVGGNetCompact(num_in_ch=3, num_out_ch=3, num_feat=64, num_conv=32, upscale=4, act_type='prelu')
@@ -106,4 +106,4 @@ gr.Interface(
     title=title,
     description=description,
     article=article,
-    examples=[['AI-generate.jpg', 'v1.3', 2], ['lincoln.png', 'v1.3',2], ['Blake_Lively.jpg', 'v1.3',2], ['10045.jpg', 'v1.3',2]]).launch()
+    examples=[['AI-generate.jpg', 'v1.3', 2], ['lincoln.jpg', 'v1.3',2], ['Blake_Lively.jpg', 'v1.3',2], ['10045.png', 'v1.3',2]]).launch()
