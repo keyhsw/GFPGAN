@@ -3,76 +3,110 @@ import os
 import cv2
 import gradio as gr
 import torch
+from basicsr.archs.srvgg_arch import SRVGGNetCompact
+from gfpgan.utils import GFPGANer
+from realesrgan.utils import RealESRGANer
 
-from realesrgan_utils import RealESRGANer
-from srvgg_arch import SRVGGNetCompact
-
-os.system("pip freeze")
-os.system(
-    "wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-x4v3.pth -P ./weights")
-os.system("wget https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.2.pth -P ./weights")
-os.system("wget https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.3.pth -P ./weights")
+# os.system("pip freeze")
+# os.system(
+#     "wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-x4v3.pth -P ./weights")
+# os.system("wget https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.2.pth -P ./weights")
+# os.system("wget https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.3.pth -P ./weights")
 
 torch.hub.download_url_to_file(
     'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Abraham_Lincoln_O-77_matte_collodion_print.jpg/1024px-Abraham_Lincoln_O-77_matte_collodion_print.jpg',
     'lincoln.jpg')
-torch.hub.download_url_to_file('https://upload.wikimedia.org/wikipedia/commons/5/50/Albert_Einstein_%28Nobel%29.png',
-                               'einstein.png')
 torch.hub.download_url_to_file(
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Thomas_Edison2.jpg/1024px-Thomas_Edison2.jpg',
-    'edison.jpg')
+    'https://user-images.githubusercontent.com/17445847/187400315-87a90ac9-d231-45d6-b377-38702bd1838f.jpg',
+    'AI-generate.jpg')
 torch.hub.download_url_to_file(
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Henry_Ford_1888.jpg/1024px-Henry_Ford_1888.jpg',
-    'Henry.jpg')
+    'https://user-images.githubusercontent.com/17445847/187400981-8a58f7a4-ef61-42d9-af80-bc6234cef860.jpg',
+    'Blake_Lively.jpg')
 torch.hub.download_url_to_file(
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Frida_Kahlo%2C_by_Guillermo_Kahlo.jpg/800px-Frida_Kahlo%2C_by_Guillermo_Kahlo.jpg',
-    'Frida.jpg')
+    'https://user-images.githubusercontent.com/17445847/187401133-8a3bf269-5b4d-4432-b2f0-6d26ee1d3307.png',
+    '10045.jpg')
 
 # determine models according to model names
+
+
+# background enhancer with RealESRGAN
 model = SRVGGNetCompact(num_in_ch=3, num_out_ch=3, num_feat=64, num_conv=32, upscale=4, act_type='prelu')
 netscale = 4
 model_path = os.path.join('weights', 'realesr-general-x4v3.pth')
-
-# restorer
 half = True if torch.cuda.is_available() else False
 upsampler = RealESRGANer(scale=netscale, model_path=model_path, model=model, tile=0, tile_pad=10, pre_pad=0, half=half)
 
 # Use GFPGAN for face enhancement
-from gfpgan_utils import GFPGANer
-
-face_enhancer = GFPGANer(
+face_enhancer_v3 = GFPGANer(
     model_path='weights/GFPGANv1.3.pth', upscale=2, arch='clean', channel_multiplier=2, bg_upsampler=upsampler)
+face_enhancer_v2 = GFPGANer(
+    model_path='weights/GFPGANv1.2.pth', upscale=2, arch='clean', channel_multiplier=2, bg_upsampler=upsampler)
 os.makedirs('output', exist_ok=True)
 
-
-def inference(img, scale=2):
+def inference(img, version, scale):
+    print(torch.cuda.is_available())
     img = cv2.imread(img, cv2.IMREAD_UNCHANGED)
+    if len(img.shape) == 3 and img.shape[2] == 4:
+        img_mode = 'RGBA'
+    else:
+        img_mode = None
 
     h, w = img.shape[0:2]
     if h < 400:
         img = cv2.resize(img, (w * 2, h * 2), interpolation=cv2.INTER_LANCZOS4)
 
+    if version == 'v1.2':
+        face_enhancer = face_enhancer_v2
+    else:
+        face_enhancer = face_enhancer_v3
     try:
         _, _, output = face_enhancer.enhance(img, has_aligned=False, only_center_face=False, paste_back=True)
     except RuntimeError as error:
         print('Error', error)
         print('If you encounter CUDA out of memory, try to set --tile with a smaller number.')
     else:
+
         extension = 'png'
     if scale != 2:
+        interpolation = cv2.INTER_AREA if scale < 2 else cv2.INTER_LANCZOS4
         h, w = img.shape[0:2]
-        output = cv2.resize((int(w * scale /2), int(h * scale/2)), interpolation=cv2.INTER_LINEAR)
+        output = cv2.resize(output, (int(w * scale /2), int(h * scale/2)), interpolation=interpolation)
+    if img_mode == 'RGBA':  # RGBA images should be saved in png format
+        extension = 'png'
+    else:
+        extension = 'jpg'
+    save_path = f'output/out.{extension}'
+    cv2.imwrite(save_path, output)
+
     output = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)
-    return output
+    return output, save_path
 
 
 title = "GFPGAN: Practical Face Restoration Algorithm"
-description = "Gradio demo for GFP-GAN: Towards Real-World Blind Face Restoration with Generative Facial Prior. To use it, simply upload your image, or click one of the examples to load them. Read more at the links below. Please click submit only once"
-article = "<p style='text-align: center'><a href='https://arxiv.org/abs/2101.04061' target='_blank'>Towards Real-World Blind Face Restoration with Generative Facial Prior</a> | <a href='https://github.com/TencentARC/GFPGAN' target='_blank'>Github Repo</a></p><center><img src='https://visitor-badge.glitch.me/badge?page_id=akhaliq_GFPGAN' alt='visitor badge'></center>"
+description = r"""
+Gradio demo for <a href='https://github.com/TencentARC/GFPGAN' target='_blank'><b>GFPGAN: Towards Real-World Blind Face Restoration with Generative Facial Prior</b></a>. <br>
+[![GitHub Stars](https://img.shields.io/github/stars/TencentARC/GFPGAN?style=social)](https://github.com/TencentARC/GFPGAN)
+It can be used to: <br>
+- Upsample/Restore your **old photos**
+- Upsample/Improve **AI-generated faces**
+
+To use it, simply upload your image. Please click submit only once.
+"""
+article = r"""<p style='text-align: center'><a href='https://arxiv.org/abs/2101.04061' target='_blank'>GFPGAN: Towards Real-World Blind Face Restoration with Generative Facial Prior</a> | <a href='https://github.com/TencentARC/GFPGAN' target='_blank'>Github Repo</a></p><center><img src='https://visitor-badge.glitch.me/badge?page_id=akhaliq_GFPGAN' alt='visitor badge'></center>
+
+[![arXiv](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://arxiv.org/abs/2101.04061)
+[![GitHub Stars](https://img.shields.io/github/stars/TencentARC/GFPGAN?style=social)](https://github.com/TencentARC/GFPGAN)
+[![download](https://img.shields.io/github/downloads/TencentARC/GFPGAN/total.svg)](https://github.com/TencentARC/GFPGAN/releases)
+
+"""
 gr.Interface(
-    inference, [gr.inputs.Image(type="filepath", label="Input"), gr.Number(lable="Rescaling factor", precision=2)],
-    gr.outputs.Image(type="numpy", label="Output (The whole image)"),
+    inference,
+    [gr.inputs.Image(type="filepath", label="Input"),
+     gr.inputs.Radio(['v1.2','v1.3'], type="value", default='v1.3', label='GFPGAN version'),
+     gr.inputs.Number(label="Rescaling factor", default=2)],
+    [gr.outputs.Image(type="numpy", label="Output (The whole image)"),
+     gr.outputs.File(label="Download the output image")],
     title=title,
     description=description,
     article=article,
-    examples=[['lincoln.jpg', 2], ['einstein.png', 2], ['edison.jpg', 2], ['Henry.jpg', 2], ['Frida.jpg', 2]]).launch()
+    examples=[['AI-generate.jpg', 'v1.3', 2], ['lincoln.png', 'v1.3',2], ['Blake_Lively.jpg', 'v1.3',2], ['10045.jpg', 'v1.3',2]).launch()
