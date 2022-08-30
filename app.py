@@ -35,7 +35,7 @@ netscale = 4
 model_path = os.path.join('weights', 'realesr-general-x4v3.pth')
 
 # restorer
-upsampler = RealESRGANer(scale=netscale, model_path=model_path, model=model, tile=0, tile_pad=10, pre_pad=0, half=True)
+upsampler = RealESRGANer(scale=netscale, model_path=model_path, model=model, tile=0, tile_pad=10, pre_pad=0, half=False)
 
 # Use GFPGAN for face enhancement
 from gfpgan_utils import GFPGANer
