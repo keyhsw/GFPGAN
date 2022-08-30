@@ -45,7 +45,7 @@ face_enhancer = GFPGANer(
 os.makedirs('output', exist_ok=True)
 
 
-def inference(img, scale):
+def inference(img, scale=2):
     img = cv2.imread(img, cv2.IMREAD_UNCHANGED)
 
     h, w = img.shape[0:2]
@@ -70,7 +70,7 @@ title = "GFPGAN: Practical Face Restoration Algorithm"
 description = "Gradio demo for GFP-GAN: Towards Real-World Blind Face Restoration with Generative Facial Prior. To use it, simply upload your image, or click one of the examples to load them. Read more at the links below. Please click submit only once"
 article = "<p style='text-align: center'><a href='https://arxiv.org/abs/2101.04061' target='_blank'>Towards Real-World Blind Face Restoration with Generative Facial Prior</a> | <a href='https://github.com/TencentARC/GFPGAN' target='_blank'>Github Repo</a></p><center><img src='https://visitor-badge.glitch.me/badge?page_id=akhaliq_GFPGAN' alt='visitor badge'></center>"
 gr.Interface(
-    inference, [gr.inputs.Image(type="filepath", label="Input"), gr.inputs.Number(value=2, lable="Rescaling factor")],
+    inference, [gr.inputs.Image(type="filepath", label="Input"), gr.Number(lable="Rescaling factor", precision=2)],
     gr.outputs.Image(type="numpy", label="Output (The whole image)"),
     title=title,
     description=description,
