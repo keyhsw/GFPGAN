@@ -45,7 +45,7 @@ face_enhancer = GFPGANer(
 os.makedirs('output', exist_ok=True)
 
 
-def inference(img):
+def inference(img, scale):
     img = cv2.imread(img, cv2.IMREAD_UNCHANGED)
 
     h, w = img.shape[0:2]
@@ -59,15 +59,18 @@ def inference(img):
         print('If you encounter CUDA out of memory, try to set --tile with a smaller number.')
     else:
         extension = 'png'
-
+    if scale != 2:
+        h, w = img.shape[0:2]
+        output = cv2.resize((int(w * scale /2), int(h * scale/2)), interpolation=cv2.INTER_LINEAR)
+    output = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)
     return output
 
 
-title = "GFP-GAN"
+title = "GFPGAN: Practical Face Restoration Algorithm"
 description = "Gradio demo for GFP-GAN: Towards Real-World Blind Face Restoration with Generative Facial Prior. To use it, simply upload your image, or click one of the examples to load them. Read more at the links below. Please click submit only once"
 article = "<p style='text-align: center'><a href='https://arxiv.org/abs/2101.04061' target='_blank'>Towards Real-World Blind Face Restoration with Generative Facial Prior</a> | <a href='https://github.com/TencentARC/GFPGAN' target='_blank'>Github Repo</a></p><center><img src='https://visitor-badge.glitch.me/badge?page_id=akhaliq_GFPGAN' alt='visitor badge'></center>"
 gr.Interface(
-    inference, [gr.inputs.Image(type="filepath", label="Input")],
+    inference, [gr.inputs.Image(type="filepath", label="Input"), gr.inputs.Number(value=2, lable="Rescaling factor")],
     gr.outputs.Image(type="numpy", label="Output (The whole image)"),
     title=title,
     description=description,
