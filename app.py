@@ -75,4 +75,4 @@ gr.Interface(
     title=title,
     description=description,
     article=article,
-    examples=[['lincoln.jpg'], ['einstein.png'], ['edison.jpg'], ['Henry.jpg'], ['Frida.jpg']]).launch()
+    examples=[['lincoln.jpg', 2], ['einstein.png', 2], ['edison.jpg', 2], ['Henry.jpg', 2], ['Frida.jpg', 2]]).launch()
