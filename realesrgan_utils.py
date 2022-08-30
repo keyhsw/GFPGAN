@@ -1,9 +1,10 @@
-import cv2
 import math
-import numpy as np
 import os
 import queue
 import threading
+
+import cv2
+import numpy as np
 import torch
 from basicsr.utils.download_util import load_file_from_url
 from torch.nn import functional as F
@@ -35,7 +36,7 @@ class RealESRGANer():
         self.half = half
 
         # initialize model
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cuda')
         # if the model_path starts with https, it will first download models to the folder: realesrgan/weights
         if model_path.startswith('https://'):
             model_path = load_file_from_url(
