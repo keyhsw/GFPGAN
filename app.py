@@ -3,7 +3,6 @@ import os
 import cv2
 import gradio as gr
 import torch
-from PIL import Image
 
 from realesrgan_utils import RealESRGANer
 from srvgg_arch import SRVGGNetCompact
@@ -35,7 +34,8 @@ netscale = 4
 model_path = os.path.join('weights', 'realesr-general-x4v3.pth')
 
 # restorer
-upsampler = RealESRGANer(scale=netscale, model_path=model_path, model=model, tile=0, tile_pad=10, pre_pad=0, half=False)
+half = True if torch.cuda.is_available() else False
+upsampler = RealESRGANer(scale=netscale, model_path=model_path, model=model, tile=0, tile_pad=10, pre_pad=0, half=half)
 
 # Use GFPGAN for face enhancement
 from gfpgan_utils import GFPGANer
@@ -60,7 +60,7 @@ def inference(img):
     else:
         extension = 'png'
 
-    return Image.fromarray(output)
+    return output
 
 
 title = "GFP-GAN"
@@ -68,7 +68,7 @@ description = "Gradio demo for GFP-GAN: Towards Real-World Blind Face Restoratio
 article = "<p style='text-align: center'><a href='https://arxiv.org/abs/2101.04061' target='_blank'>Towards Real-World Blind Face Restoration with Generative Facial Prior</a> | <a href='https://github.com/TencentARC/GFPGAN' target='_blank'>Github Repo</a></p><center><img src='https://visitor-badge.glitch.me/badge?page_id=akhaliq_GFPGAN' alt='visitor badge'></center>"
 gr.Interface(
     inference, [gr.inputs.Image(type="filepath", label="Input")],
-    gr.outputs.Image(type="pil", label="Output"),
+    gr.outputs.Image(type="numpy", label="Output (The whole image)"),
     title=title,
     description=description,
     article=article,
