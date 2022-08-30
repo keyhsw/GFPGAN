@@ -9,9 +9,9 @@ from realesrgan.utils import RealESRGANer
 
 os.system("pip freeze")
 os.system(
-    "wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-x4v3.pth -P ./weights")
-os.system("wget https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.2.pth -P ./weights")
-os.system("wget https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.3.pth -P ./weights")
+    "wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-x4v3.pth -P .")
+os.system("wget https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.2.pth -P .")
+os.system("wget https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.3.pth -P .")
 
 torch.hub.download_url_to_file(
     'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Abraham_Lincoln_O-77_matte_collodion_print.jpg/1024px-Abraham_Lincoln_O-77_matte_collodion_print.jpg',
@@ -26,21 +26,18 @@ torch.hub.download_url_to_file(
     'https://user-images.githubusercontent.com/17445847/187401133-8a3bf269-5b4d-4432-b2f0-6d26ee1d3307.png',
     '10045.jpg')
 
-# determine models according to model names
-
-
 # background enhancer with RealESRGAN
 model = SRVGGNetCompact(num_in_ch=3, num_out_ch=3, num_feat=64, num_conv=32, upscale=4, act_type='prelu')
 netscale = 4
-model_path = os.path.join('weights', 'realesr-general-x4v3.pth')
+model_path = 'realesr-general-x4v3.pth'
 half = True if torch.cuda.is_available() else False
 upsampler = RealESRGANer(scale=netscale, model_path=model_path, model=model, tile=0, tile_pad=10, pre_pad=0, half=half)
 
 # Use GFPGAN for face enhancement
 face_enhancer_v3 = GFPGANer(
-    model_path='weights/GFPGANv1.3.pth', upscale=2, arch='clean', channel_multiplier=2, bg_upsampler=upsampler)
+    model_path='GFPGANv1.3.pth', upscale=2, arch='clean', channel_multiplier=2, bg_upsampler=upsampler)
 face_enhancer_v2 = GFPGANer(
-    model_path='weights/GFPGANv1.2.pth', upscale=2, arch='clean', channel_multiplier=2, bg_upsampler=upsampler)
+    model_path='GFPGANv1.2.pth', upscale=2, arch='clean', channel_multiplier=2, bg_upsampler=upsampler)
 os.makedirs('output', exist_ok=True)
 
 def inference(img, version, scale):
@@ -109,4 +106,4 @@ gr.Interface(
     title=title,
     description=description,
     article=article,
-    examples=[['AI-generate.jpg', 'v1.3', 2], ['lincoln.png', 'v1.3',2], ['Blake_Lively.jpg', 'v1.3',2], ['10045.jpg', 'v1.3',2]).launch()
+    examples=[['AI-generate.jpg', 'v1.3', 2], ['lincoln.png', 'v1.3',2], ['Blake_Lively.jpg', 'v1.3',2], ['10045.jpg', 'v1.3',2]]).launch()
