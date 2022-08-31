@@ -64,10 +64,13 @@ def inference(img, version, scale):
     else:
 
         extension = 'png'
-    if scale != 2:
-        interpolation = cv2.INTER_AREA if scale < 2 else cv2.INTER_LANCZOS4
-        h, w = img.shape[0:2]
-        output = cv2.resize(output, (int(w * scale /2), int(h * scale/2)), interpolation=interpolation)
+    try:
+        if scale != 2:
+            interpolation = cv2.INTER_AREA if scale < 2 else cv2.INTER_LANCZOS4
+            h, w = img.shape[0:2]
+            output = cv2.resize(output, (int(w * scale /2), int(h * scale/2)), interpolation=interpolation)
+    except:
+        print('wrong scale input')
     if img_mode == 'RGBA':  # RGBA images should be saved in png format
         extension = 'png'
     else:
