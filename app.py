@@ -87,8 +87,8 @@ def inference(img, version, scale):
 title = "GFPGAN: Practical Face Restoration Algorithm"
 description = r"""Gradio demo for <a href='https://github.com/TencentARC/GFPGAN' target='_blank'><b>GFPGAN: Towards Real-World Blind Face Restoration with Generative Facial Prior</b></a>.<br>
 It can be used to restore your **old photos** or improve **AI-generated faces**.<br>
-To use it, simply upload your image.
-More details are in the <a href='https://github.com/TencentARC/GFPGAN' target='_blank'><b>Github Repo</b></a>.
+To use it, simply upload your image.<br>
+If GFPGAN is helpful, please help to ⭐ the <a href='https://github.com/TencentARC/GFPGAN' target='_blank'>Github Repo</a> and recommend it to your friends 😊
 """
 article = r"""
 
@@ -96,7 +96,7 @@ article = r"""
 [![GitHub Stars](https://img.shields.io/github/stars/TencentARC/GFPGAN?style=social)](https://github.com/TencentARC/GFPGAN)
 [![arXiv](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://arxiv.org/abs/2101.04061)
 
-If you have any question, please email `xintao.wang@outlook.com` or `xintaowang@tencent.com`.
+If you have any question, please email 📧 `xintao.wang@outlook.com` or `xintaowang@tencent.com`.
 
 <center><img src='https://visitor-badge.glitch.me/badge?page_id=akhaliq_GFPGAN' alt='visitor badge'></center>
 <center><img src='https://visitor-badge.glitch.me/badge?page_id=Gradio_Xintao_GFPGAN' alt='visitor badge'></center>
