@@ -41,7 +41,7 @@ face_enhancer_v2 = GFPGANer(
 os.makedirs('output', exist_ok=True)
 
 def inference(img, version, scale):
-    print(torch.cuda.is_available())
+    print(img, version, scale)
     img = cv2.imread(img, cv2.IMREAD_UNCHANGED)
     if len(img.shape) == 3 and img.shape[2] == 4:
         img_mode = 'RGBA'
@@ -69,8 +69,8 @@ def inference(img, version, scale):
             interpolation = cv2.INTER_AREA if scale < 2 else cv2.INTER_LANCZOS4
             h, w = img.shape[0:2]
             output = cv2.resize(output, (int(w * scale /2), int(h * scale/2)), interpolation=interpolation)
-    except:
-        print('wrong scale input')
+    except Exception as error:
+        print('wrong scale input.', error)
     if img_mode == 'RGBA':  # RGBA images should be saved in png format
         extension = 'png'
     else:
@@ -83,13 +83,8 @@ def inference(img, version, scale):
 
 
 title = "GFPGAN: Practical Face Restoration Algorithm"
-description = r"""[![GitHub Stars]()]()
-
-<a href="https://github.com/TencentARC/GFPGAN" target='_blank'>
-    <img src="https://img.shields.io/github/stars/TencentARC/GFPGAN?style=social" alt="GFPGAN stars" />
-</a>
-
-Gradio demo for <a href='https://github.com/TencentARC/GFPGAN' target='_blank'><b>GFPGAN: Towards Real-World Blind Face Restoration with Generative Facial Prior</b></a>.<br>
+description = r"""
+<a href="https://github.com/TencentARC/GFPGAN" target='_blank'> <img src="https://img.shields.io/github/stars/TencentARC/GFPGAN?style=social" alt="GFPGAN stars" /></a> Gradio demo for <a href='https://github.com/TencentARC/GFPGAN' target='_blank'><b>GFPGAN: Towards Real-World Blind Face Restoration with Generative Facial Prior</b></a>.<br>
 It can be used to restore your **old photos** or improve **AI-generated faces**.<br>
 To use it, simply upload your image.
 """
