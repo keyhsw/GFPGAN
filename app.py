@@ -8,8 +8,7 @@ from gfpgan.utils import GFPGANer
 from realesrgan.utils import RealESRGANer
 
 os.system("pip freeze")
-os.system(
-    "wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-x4v3.pth -P .")
+os.system("wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-x4v3.pth -P .")
 os.system("wget https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.2.pth -P .")
 os.system("wget https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.3.pth -P .")
 
@@ -28,10 +27,9 @@ torch.hub.download_url_to_file(
 
 # background enhancer with RealESRGAN
 model = SRVGGNetCompact(num_in_ch=3, num_out_ch=3, num_feat=64, num_conv=32, upscale=4, act_type='prelu')
-netscale = 4
 model_path = 'realesr-general-x4v3.pth'
 half = True if torch.cuda.is_available() else False
-upsampler = RealESRGANer(scale=netscale, model_path=model_path, model=model, tile=0, tile_pad=10, pre_pad=0, half=half)
+upsampler = RealESRGANer(scale=4, model_path=model_path, model=model, tile=0, tile_pad=10, pre_pad=0, half=half)
 
 # Use GFPGAN for face enhancement
 face_enhancer_v3 = GFPGANer(
@@ -40,70 +38,80 @@ face_enhancer_v2 = GFPGANer(
     model_path='GFPGANv1.2.pth', upscale=2, arch='clean', channel_multiplier=2, bg_upsampler=upsampler)
 os.makedirs('output', exist_ok=True)
 
+
 def inference(img, version, scale):
     print(img, version, scale)
-    img = cv2.imread(img, cv2.IMREAD_UNCHANGED)
-    if len(img.shape) == 3 and img.shape[2] == 4:
-        img_mode = 'RGBA'
-    else:
-        img_mode = None
-
-    h, w = img.shape[0:2]
-    if h < 400:
-        img = cv2.resize(img, (w * 2, h * 2), interpolation=cv2.INTER_LANCZOS4)
-
-    if version == 'v1.2':
-        face_enhancer = face_enhancer_v2
-    else:
-        face_enhancer = face_enhancer_v3
     try:
-        _, _, output = face_enhancer.enhance(img, has_aligned=False, only_center_face=False, paste_back=True)
-    except RuntimeError as error:
-        print('Error', error)
-        print('If you encounter CUDA out of memory, try to set --tile with a smaller number.')
-    else:
+        img = cv2.imread(img, cv2.IMREAD_UNCHANGED)
+        if len(img.shape) == 3 and img.shape[2] == 4:
+            img_mode = 'RGBA'
+        else:
+            img_mode = None
 
-        extension = 'png'
-    try:
-        if scale != 2:
-            interpolation = cv2.INTER_AREA if scale < 2 else cv2.INTER_LANCZOS4
-            h, w = img.shape[0:2]
-            output = cv2.resize(output, (int(w * scale /2), int(h * scale/2)), interpolation=interpolation)
+        h, w = img.shape[0:2]
+        if h < 300:
+            img = cv2.resize(img, (w * 2, h * 2), interpolation=cv2.INTER_LANCZOS4)
+
+        if version == 'v1.2':
+            face_enhancer = face_enhancer_v2
+        else:
+            face_enhancer = face_enhancer_v3
+        try:
+            _, _, output = face_enhancer.enhance(img, has_aligned=False, only_center_face=False, paste_back=True)
+        except RuntimeError as error:
+            print('Error', error)
+        else:
+            extension = 'png'
+
+        try:
+            if scale != 2:
+                interpolation = cv2.INTER_AREA if scale < 2 else cv2.INTER_LANCZOS4
+                h, w = img.shape[0:2]
+                output = cv2.resize(output, (int(w * scale / 2), int(h * scale / 2)), interpolation=interpolation)
+        except Exception as error:
+            print('wrong scale input.', error)
+        if img_mode == 'RGBA':  # RGBA images should be saved in png format
+            extension = 'png'
+        else:
+            extension = 'jpg'
+        save_path = f'output/out.{extension}'
+        cv2.imwrite(save_path, output)
+
+        output = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)
+        return output, save_path
     except Exception as error:
-        print('wrong scale input.', error)
-    if img_mode == 'RGBA':  # RGBA images should be saved in png format
-        extension = 'png'
-    else:
-        extension = 'jpg'
-    save_path = f'output/out.{extension}'
-    cv2.imwrite(save_path, output)
-
-    output = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)
-    return output, save_path
+        print('global exception', error)
+        return None, None
 
 
 title = "GFPGAN: Practical Face Restoration Algorithm"
-description = r"""
-<a href="https://github.com/TencentARC/GFPGAN" target='_blank'> <img src="https://img.shields.io/github/stars/TencentARC/GFPGAN?style=social" alt="GFPGAN stars" /></a> Gradio demo for <a href='https://github.com/TencentARC/GFPGAN' target='_blank'><b>GFPGAN: Towards Real-World Blind Face Restoration with Generative Facial Prior</b></a>.<br>
+description = r"""Gradio demo for <a href='https://github.com/TencentARC/GFPGAN' target='_blank'><b>GFPGAN: Towards Real-World Blind Face Restoration with Generative Facial Prior</b></a>.<br>
 It can be used to restore your **old photos** or improve **AI-generated faces**.<br>
 To use it, simply upload your image.
+More details are in the <a href='https://github.com/TencentARC/GFPGAN' target='_blank'><b>Github Repo</b></a>.
 """
-article = r"""<p style='text-align: center'><a href='https://arxiv.org/abs/2101.04061' target='_blank'>GFPGAN: Towards Real-World Blind Face Restoration with Generative Facial Prior</a> | <a href='https://github.com/TencentARC/GFPGAN' target='_blank'>Github Repo</a></p><center><img src='https://visitor-badge.glitch.me/badge?page_id=akhaliq_GFPGAN' alt='visitor badge'></center>
-<center><img src='https://visitor-badge.glitch.me/badge?page_id=Gradio_Xintao_GFPGAN' alt='visitor badge'></center>
+article = r"""
 
-[![arXiv](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://arxiv.org/abs/2101.04061)
-[![GitHub Stars](https://img.shields.io/github/stars/TencentARC/GFPGAN?style=social)](https://github.com/TencentARC/GFPGAN)
 [![download](https://img.shields.io/github/downloads/TencentARC/GFPGAN/total.svg)](https://github.com/TencentARC/GFPGAN/releases)
+[![GitHub Stars](https://img.shields.io/github/stars/TencentARC/GFPGAN?style=social)](https://github.com/TencentARC/GFPGAN)
+[![arXiv](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://arxiv.org/abs/2101.04061)
 
+If you have any question, please email `xintao.wang@outlook.com` or `xintaowang@tencent.com`.
+
+<center><img src='https://visitor-badge.glitch.me/badge?page_id=akhaliq_GFPGAN' alt='visitor badge'></center>
+<center><img src='https://visitor-badge.glitch.me/badge?page_id=Gradio_Xintao_GFPGAN' alt='visitor badge'></center>
 """
 gr.Interface(
-    inference,
-    [gr.inputs.Image(type="filepath", label="Input"),
-     gr.inputs.Radio(['v1.2','v1.3'], type="value", default='v1.3', label='GFPGAN version'),
-     gr.inputs.Number(label="Rescaling factor", default=2)],
-    [gr.outputs.Image(type="numpy", label="Output (The whole image)"),
-     gr.outputs.File(label="Download the output image")],
+    inference, [
+        gr.inputs.Image(type="filepath", label="Input"),
+        gr.inputs.Radio(['v1.2', 'v1.3'], type="value", default='v1.3', label='GFPGAN version'),
+        gr.inputs.Number(label="Rescaling factor", default=2)
+    ], [
+        gr.outputs.Image(type="numpy", label="Output (The whole image)"),
+        gr.outputs.File(label="Download the output image")
+    ],
     title=title,
     description=description,
     article=article,
-    examples=[['AI-generate.jpg', 'v1.3', 2], ['lincoln.jpg', 'v1.3',2], ['Blake_Lively.jpg', 'v1.3',2], ['10045.png', 'v1.3',2]]).launch()
+    examples=[['AI-generate.jpg', 'v1.3', 2], ['lincoln.jpg', 'v1.3', 2], ['Blake_Lively.jpg', 'v1.3', 2],
+              ['10045.png', 'v1.3', 2]]).launch()
