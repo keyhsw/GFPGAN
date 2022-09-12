@@ -8,9 +8,19 @@ from gfpgan.utils import GFPGANer
 from realesrgan.utils import RealESRGANer
 
 os.system("pip freeze")
-os.system("wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-x4v3.pth -P .")
-os.system("wget https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.2.pth -P .")
-os.system("wget https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.3.pth -P .")
+# download weights
+if not os.path.exists('realesr-general-x4v3.pth'):
+    os.system("wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-x4v3.pth -P .")
+if not os.path.exists('GFPGANv1.2.pth'):
+    os.system("wget https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.2.pth -P .")
+if not os.path.exists('GFPGANv1.3.pth'):
+    os.system("wget https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.3.pth -P .")
+if not os.path.exists('GFPGANv1.4.pth'):
+    os.system("wget https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.4.pth -P .")
+if not os.path.exists('RestoreFormer.pth'):
+    os.system("wget https://github.com/TencentARC/GFPGAN/releases/download/v1.3.4/RestoreFormer.pth -P .")
+if not os.path.exists('CodeFormer.pth'):
+    os.system("wget https://github.com/TencentARC/GFPGAN/releases/download/v1.3.4/CodeFormer.pth -P .")
 
 torch.hub.download_url_to_file(
     'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Abraham_Lincoln_O-77_matte_collodion_print.jpg/1024px-Abraham_Lincoln_O-77_matte_collodion_print.jpg',
@@ -31,20 +41,20 @@ model_path = 'realesr-general-x4v3.pth'
 half = True if torch.cuda.is_available() else False
 upsampler = RealESRGANer(scale=4, model_path=model_path, model=model, tile=0, tile_pad=10, pre_pad=0, half=half)
 
-# Use GFPGAN for face enhancement
-face_enhancer_v3 = GFPGANer(
-    model_path='GFPGANv1.3.pth', upscale=2, arch='clean', channel_multiplier=2, bg_upsampler=upsampler)
-face_enhancer_v2 = GFPGANer(
-    model_path='GFPGANv1.2.pth', upscale=2, arch='clean', channel_multiplier=2, bg_upsampler=upsampler)
 os.makedirs('output', exist_ok=True)
 
 
-def inference(img, version, scale):
-    print(img, version, scale)
+def inference(img, version, scale, weight):
+    weight /= 100
+    print(img, version, scale, weight)
     try:
+        extension = os.path.splitext(os.path.basename(str(img)))[1]
         img = cv2.imread(img, cv2.IMREAD_UNCHANGED)
         if len(img.shape) == 3 and img.shape[2] == 4:
             img_mode = 'RGBA'
+        elif len(img.shape) == 2:  # for gray inputs
+            img_mode = None
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         else:
             img_mode = None
 
@@ -53,15 +63,25 @@ def inference(img, version, scale):
             img = cv2.resize(img, (w * 2, h * 2), interpolation=cv2.INTER_LANCZOS4)
 
         if version == 'v1.2':
-            face_enhancer = face_enhancer_v2
-        else:
-            face_enhancer = face_enhancer_v3
+            face_enhancer = GFPGANer(
+            model_path='GFPGANv1.2.pth', upscale=2, arch='clean', channel_multiplier=2, bg_upsampler=upsampler)
+        elif version == 'v1.3':
+            face_enhancer = GFPGANer(
+            model_path='GFPGANv1.3.pth', upscale=2, arch='clean', channel_multiplier=2, bg_upsampler=upsampler)
+        elif version == 'v1.4':
+            face_enhancer = GFPGANer(
+            model_path='GFPGANv1.4.pth', upscale=2, arch='clean', channel_multiplier=2, bg_upsampler=upsampler)
+        elif version == 'RestoreFormer':
+            face_enhancer = GFPGANer(
+            model_path='RestoreFormer.pth', upscale=2, arch='RestoreFormer', channel_multiplier=2, bg_upsampler=upsampler)
+        elif version == 'CodeFormer':
+            face_enhancer = GFPGANer(
+            model_path='CodeFormer.pth', upscale=2, arch='CodeFormer', channel_multiplier=2, bg_upsampler=upsampler)
+
         try:
             _, _, output = face_enhancer.enhance(img, has_aligned=False, only_center_face=False, paste_back=True)
         except RuntimeError as error:
             print('Error', error)
-        else:
-            extension = 'png'
 
         try:
             if scale != 2:
@@ -104,8 +124,9 @@ If you have any question, please email 📧 `xintao.wang@outlook.com` or `xintao
 gr.Interface(
     inference, [
         gr.inputs.Image(type="filepath", label="Input"),
-        gr.inputs.Radio(['v1.2', 'v1.3'], type="value", default='v1.3', label='GFPGAN version'),
-        gr.inputs.Number(label="Rescaling factor", default=2)
+        gr.inputs.Radio(['v1.2', 'v1.3', 'v1.4', 'RestoeFormer', 'CodeFormer'], type="value", default='v1.4', label='version'),
+        gr.inputs.Number(label="Rescaling factor", default=2),
+        gr.Slider(0, 100, label='weight, only for CodeFormer. 0 for better quality, 100 for better identity', default=50)
     ], [
         gr.outputs.Image(type="numpy", label="Output (The whole image)"),
         gr.outputs.File(label="Download the output image")
