@@ -134,5 +134,5 @@ gr.Interface(
     title=title,
     description=description,
     article=article,
-    examples=[['AI-generate.jpg', 'v1.3', 2], ['lincoln.jpg', 'v1.3', 2], ['Blake_Lively.jpg', 'v1.3', 2],
-              ['10045.png', 'v1.3', 2]]).launch()
+    examples=[['AI-generate.jpg', 'v1.4', 2, 50], ['lincoln.jpg', 'v1.4', 2, 50], ['Blake_Lively.jpg', 'v1.4', 2, 50],
+              ['10045.png', 'v1.4', 2, 50]]).launch()
