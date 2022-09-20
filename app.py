@@ -44,9 +44,10 @@ upsampler = RealESRGANer(scale=4, model_path=model_path, model=model, tile=0, ti
 os.makedirs('output', exist_ok=True)
 
 
-def inference(img, version, scale, weight):
-    weight /= 100
-    print(img, version, scale, weight)
+# def inference(img, version, scale, weight):
+def inference(img, version, scale):
+    # weight /= 100
+    print(img, version, scale)
     try:
         extension = os.path.splitext(os.path.basename(str(img)))[1]
         img = cv2.imread(img, cv2.IMREAD_UNCHANGED)
@@ -79,7 +80,8 @@ def inference(img, version, scale, weight):
         #     model_path='CodeFormer.pth', upscale=2, arch='CodeFormer', channel_multiplier=2, bg_upsampler=upsampler)
 
         try:
-            _, _, output = face_enhancer.enhance(img, has_aligned=False, only_center_face=False, paste_back=True, weight=weight)
+            # _, _, output = face_enhancer.enhance(img, has_aligned=False, only_center_face=False, paste_back=True, weight=weight)
+            _, _, output = face_enhancer.enhance(img, has_aligned=False, only_center_face=False, paste_back=True)
         except RuntimeError as error:
             print('Error', error)
 
