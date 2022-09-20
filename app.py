@@ -74,9 +74,9 @@ def inference(img, version, scale, weight):
         elif version == 'RestoreFormer':
             face_enhancer = GFPGANer(
             model_path='RestoreFormer.pth', upscale=2, arch='RestoreFormer', channel_multiplier=2, bg_upsampler=upsampler)
-        elif version == 'CodeFormer':
-            face_enhancer = GFPGANer(
-            model_path='CodeFormer.pth', upscale=2, arch='CodeFormer', channel_multiplier=2, bg_upsampler=upsampler)
+        # elif version == 'CodeFormer':
+        #     face_enhancer = GFPGANer(
+        #     model_path='CodeFormer.pth', upscale=2, arch='CodeFormer', channel_multiplier=2, bg_upsampler=upsampler)
 
         try:
             _, _, output = face_enhancer.enhance(img, has_aligned=False, only_center_face=False, paste_back=True, weight=weight)
@@ -124,9 +124,10 @@ If you have any question, please email 📧 `xintao.wang@outlook.com` or `xintao
 gr.Interface(
     inference, [
         gr.inputs.Image(type="filepath", label="Input"),
-        gr.inputs.Radio(['v1.2', 'v1.3', 'v1.4', 'RestoreFormer', 'CodeFormer'], type="value", default='v1.4', label='version'),
+        # gr.inputs.Radio(['v1.2', 'v1.3', 'v1.4', 'RestoreFormer', 'CodeFormer'], type="value", default='v1.4', label='version'),
+        gr.inputs.Radio(['v1.2', 'v1.3', 'v1.4', 'RestoreFormer'], type="value", default='v1.4', label='version'),
         gr.inputs.Number(label="Rescaling factor", default=2),
-        gr.Slider(0, 100, label='Weight, only for CodeFormer. 0 for better quality, 100 for better identity', default=50)
+        # gr.Slider(0, 100, label='Weight, only for CodeFormer. 0 for better quality, 100 for better identity', default=50)
     ], [
         gr.outputs.Image(type="numpy", label="Output (The whole image)"),
         gr.outputs.File(label="Download the output image")
@@ -134,5 +135,7 @@ gr.Interface(
     title=title,
     description=description,
     article=article,
-    examples=[['AI-generate.jpg', 'v1.4', 2, 50], ['lincoln.jpg', 'v1.4', 2, 50], ['Blake_Lively.jpg', 'v1.4', 2, 50],
-              ['10045.png', 'v1.4', 2, 50]]).launch()
+    # examples=[['AI-generate.jpg', 'v1.4', 2, 50], ['lincoln.jpg', 'v1.4', 2, 50], ['Blake_Lively.jpg', 'v1.4', 2, 50],
+    #           ['10045.png', 'v1.4', 2, 50]]).launch()
+    examples=[['AI-generate.jpg', 'v1.4', 2], ['lincoln.jpg', 'v1.4', 2], ['Blake_Lively.jpg', 'v1.4', 2],
+              ['10045.png', 'v1.4', 2]]).launch()
