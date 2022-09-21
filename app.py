@@ -123,7 +123,7 @@ If you have any question, please email 📧 `xintao.wang@outlook.com` or `xintao
 <center><img src='https://visitor-badge.glitch.me/badge?page_id=akhaliq_GFPGAN' alt='visitor badge'></center>
 <center><img src='https://visitor-badge.glitch.me/badge?page_id=Gradio_Xintao_GFPGAN' alt='visitor badge'></center>
 """
-gr.Interface(
+demo = gr.Interface(
     inference, [
         gr.inputs.Image(type="filepath", label="Input"),
         # gr.inputs.Radio(['v1.2', 'v1.3', 'v1.4', 'RestoreFormer', 'CodeFormer'], type="value", default='v1.4', label='version'),
@@ -140,4 +140,6 @@ gr.Interface(
     # examples=[['AI-generate.jpg', 'v1.4', 2, 50], ['lincoln.jpg', 'v1.4', 2, 50], ['Blake_Lively.jpg', 'v1.4', 2, 50],
     #           ['10045.png', 'v1.4', 2, 50]]).launch()
     examples=[['AI-generate.jpg', 'v1.4', 2], ['lincoln.jpg', 'v1.4', 2], ['Blake_Lively.jpg', 'v1.4', 2],
-              ['10045.png', 'v1.4', 2]]).launch()
+              ['10045.png', 'v1.4', 2]])
+demo.queue(concurrency_count=4)
+demo.launch()
