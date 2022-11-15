@@ -48,8 +48,8 @@ os.makedirs('output', exist_ok=True)
 def inference(img, version, scale):
     # weight /= 100
     print(img, version, scale)
-    if scale > 10:
-        scale = 10  # avoid too large scale value
+    if scale > 4:
+        scale = 4  # avoid too large scale value
     try:
         extension = os.path.splitext(os.path.basename(str(img)))[1]
         img = cv2.imread(img, cv2.IMREAD_UNCHANGED)
