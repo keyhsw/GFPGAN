@@ -62,6 +62,10 @@ def inference(img, version, scale):
             img_mode = None
 
         h, w = img.shape[0:2]
+        if h > 3500 or w > 3500:
+            print('too large size')
+            return None, None
+        
         if h < 300:
             img = cv2.resize(img, (w * 2, h * 2), interpolation=cv2.INTER_LANCZOS4)
 
@@ -143,5 +147,5 @@ demo = gr.Interface(
     #           ['10045.png', 'v1.4', 2, 50]]).launch()
     examples=[['AI-generate.jpg', 'v1.4', 2], ['lincoln.jpg', 'v1.4', 2], ['Blake_Lively.jpg', 'v1.4', 2],
               ['10045.png', 'v1.4', 2]])
-demo.queue(concurrency_count=2)
+demo.queue(concurrency_count=1)
 demo.launch()
