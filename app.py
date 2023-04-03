@@ -149,4 +149,4 @@ demo = gr.Interface(
               ['10045.png', 'v1.4', 2]],
     server_port=7870)
 demo.queue(concurrency_count=1)
-demo.launch(server_port=7870))
+demo.launch(server_port=7870)
