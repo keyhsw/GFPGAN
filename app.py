@@ -146,7 +146,5 @@ demo = gr.Interface(
     # examples=[['AI-generate.jpg', 'v1.4', 2, 50], ['lincoln.jpg', 'v1.4', 2, 50], ['Blake_Lively.jpg', 'v1.4', 2, 50],
     #           ['10045.png', 'v1.4', 2, 50]]).launch()
     examples=[['AI-generate.jpg', 'v1.4', 2], ['lincoln.jpg', 'v1.4', 2], ['Blake_Lively.jpg', 'v1.4', 2],
-              ['10045.png', 'v1.4', 2]],
-    server_port=7870)
-demo.queue(concurrency_count=1)
+              ['10045.png', 'v1.4', 2]])
 demo.launch(server_port=7870)
