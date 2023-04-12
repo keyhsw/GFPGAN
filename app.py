@@ -131,14 +131,14 @@ If you have any question, please email 📧 `xintao.wang@outlook.com` or `xintao
 """
 demo = gr.Interface(
     inference, [
-        gr.inputs.Image(type="filepath", label="Input"),
-        # gr.inputs.Radio(['v1.2', 'v1.3', 'v1.4', 'RestoreFormer', 'CodeFormer'], type="value", default='v1.4', label='version'),
-        gr.inputs.Radio(['v1.2', 'v1.3', 'v1.4', 'RestoreFormer'], type="value", default='v1.4', label='version'),
-        gr.inputs.Number(label="Rescaling factor", default=2),
-        # gr.Slider(0, 100, label='Weight, only for CodeFormer. 0 for better quality, 100 for better identity', default=50)
+        gr.Image(type="filepath", label="Input"),
+        # gr.Radio(['v1.2', 'v1.3', 'v1.4', 'RestoreFormer', 'CodeFormer'], type="value", value='v1.4', label='version'),
+        gr.Radio(['v1.2', 'v1.3', 'v1.4', 'RestoreFormer'], type="value", value='v1.4', label='version'),
+        gr.Number(label="Rescaling factor", value=2),
+        # gr.Slider(0, 100, label='Weight, only for CodeFormer. 0 for better quality, 100 for better identity', value=50)
     ], [
-        gr.outputs.Image(type="numpy", label="Output (The whole image)"),
-        gr.outputs.File(label="Download the output image")
+        gr.Image(type="numpy", label="Output (The whole image)"),
+        gr.File(label="Download the output image")
     ],
     title=title,
     description=description,
@@ -147,4 +147,4 @@ demo = gr.Interface(
     #           ['10045.png', 'v1.4', 2, 50]]).launch()
     examples=[['AI-generate.jpg', 'v1.4', 2], ['lincoln.jpg', 'v1.4', 2], ['Blake_Lively.jpg', 'v1.4', 2],
               ['10045.png', 'v1.4', 2]])
-demo.launch()
+demo.queue().launch()
